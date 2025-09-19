@@ -1,6 +1,6 @@
 <template>
   <div class="help-page">
-    <Header />
+    <Header></Header>
 
     <main class="help-content">
       <h1 class="help-title">Šta Vam sajt MovieManiacs pruža:</h1>
@@ -38,7 +38,7 @@
       </section>
     </main>
 
-    <Footer />
+    <Footer></Footer>
   </div>
 </template>
 

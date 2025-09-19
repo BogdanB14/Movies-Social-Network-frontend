@@ -1,6 +1,6 @@
 <template>
     <div class="movie-list-container">
-        <Header />
+        <Header></Header>
 
         <div class="movie-list-content">
             <div class="sort-bar">
@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <Footer />
+        <Footer></Footer>
     </div>
 </template>
 

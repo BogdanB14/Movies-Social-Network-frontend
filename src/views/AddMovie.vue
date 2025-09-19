@@ -1,12 +1,12 @@
 <template>
   <div class="add-movie-page">
-    <Header />
+    <Header></Header>
 
     <main class="add-movie-content">
       <h1 class="page-title">Dodaj novi film</h1>
 
-      <!-- NOTE: .prevent stops default page reload and calls onSubmit -->
-      <form class="add-movie-form" @submit.prevent="onSubmit">
+      <!-- NOTE: .prevent stops default page reload and calls submitMovie -->
+      <form class="add-movie-form" @submit.prevent="submitMovie">
         <div class="form-group">
           <label for="title">Ime filma</label>
           <input type="text" id="title" v-model.trim="movie.title" placeholder="Unesite ime filma" required />
@@ -44,7 +44,7 @@
       </form>
     </main>
 
-    <Footer />
+    <Footer></Footer>
   </div>
 </template>
 
@@ -79,7 +79,7 @@ export default {
       this.posterName = file ? file.name : "";
     },
 
-    async onSubmit() {
+    async submitMovie() {
       this.error = "";
       this.success = "";
 

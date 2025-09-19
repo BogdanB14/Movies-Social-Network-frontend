@@ -68,7 +68,6 @@ export default {
     toggleDropdown() {
       this.showProfileMenu = !this.showProfileMenu;
     },
-
     logout() {
       const auth = useAuthStore();
       axios.post("http://localhost/backend/logout.php", {}, { withCredentials: true })

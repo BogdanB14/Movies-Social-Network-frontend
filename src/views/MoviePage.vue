@@ -20,7 +20,7 @@
                     <p v-if="movie.description" class="description">{{ movie.description }}</p>
 
                     <!-- Admin-only Delete button -->
-                    <button v-if="canDelete" class="btn-danger" :disabled="deleteLoading" @click="onDeleteMovie">
+                    <button v-if="canDelete" class="btn-danger" :disabled="deleteLoading" @click="deleteMovie">
                         {{ deleteLoading ? 'Brisanje…' : 'Obriši film' }}
                     </button>
 
@@ -75,10 +75,11 @@
 import axios from "axios";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import PersonsComment from "@/components/PersonsComment.vue"; // 👈 import component
+import PersonsComment from "@/components/PersonsComment.vue";
 import inception from "../img/inception.jpg";
 import { useAuthStore } from "@/stores/auth";
 import { computed } from "vue";
+
 export default {
     name: "MoviePage",
     components: { Header, Footer, PersonsComment },
@@ -95,7 +96,6 @@ export default {
             submitLoading: false,
             submitError: "",
             deleteLoading: false,
-            // movie: null,
             movie: {
                 title: "Inception",
                 genre: "Thriller",
@@ -104,31 +104,7 @@ export default {
                     "Blasdiqewdkaoksdosmdnvowjfiqjdasd aKSDI WIQEJFIF0QKWD KQasdkoasd",
                 poster: inception,
             },
-
-            // 🔽 Demo comments (replace with backend later if needed)
-            comments: [
-                {
-                    id: 1,
-                    author: "Bojan",
-                    movieName: "Inception",
-                    timeItwasCommented: "3d",
-                    content: "Odličan film, treći put gledam i još uvek me oduva!"
-                },
-                {
-                    id: 2,
-                    author: "Mina",
-                    movieName: "Inception",
-                    timeItwasCommented: "2h",
-                    content: "Hans Zimmer soundtrack 🔥"
-                },
-                {
-                    id: 3,
-                    author: "Nikola",
-                    movieName: "The Godfather",
-                    timeItwasCommented: "1w",
-                    content: "Klasik nad klasicima."
-                }
-            ],
+            comments: [],
         };
     },
     computed: {
@@ -143,7 +119,6 @@ export default {
                 return this.slug.replace(/-/g, " ");
             }
         },
-        // Only comments for the current movie
         displayedComments() {
             const title = (this.movie?.title || this.titleFromSlug || "").toLowerCase();
             return this.comments.filter(
@@ -152,47 +127,39 @@ export default {
         },
     },
     methods: {
-        async onDeleteMovie() {
-            if (!this.movie?.title) return;
-
-            this.deleteLoading = true;
+        async fetchCommentsForMovie(movieTitle) {
             try {
-                // If your backend prefers DELETE with query param, you can use axios.delete
-                // Here is a POST example (common for PHP endpoints)
-                const { data } = await axios.post(
-                    "http://localhost/backend/delete_movie.php",
-                    { title: this.movie.title }, // deleting by movie title as you requested
-                    { withCredentials: true }
+                const res = await axios.get(
+                    "http://localhost/backend/get_comments_by_movie.php",
+                    {
+                        params: { movieTitle },
+                        withCredentials: true,
+                    }
                 );
-
-                if (data?.success) {
-                    // success -> pop-up/alert, then route home
-                    window.alert(data?.message || "Film je uspešno obrisan.");
-                    this.$router.push("/");
-                } else {
-                    window.alert(data?.message || "Brisanje nije uspelo.");
-                }
+                const rows = Array.isArray(res.data) ? res.data : [];
+                this.comments = rows.map((c) => ({
+                    id: c.id ?? c.comment_id ?? c.ID ?? undefined,
+                    author: c.author ?? c.username ?? c.user ?? "Nepoznato",
+                    movieName: c.movieName ?? c.movie_title ?? movieTitle,
+                    timeItwasCommented: c.timeItwasCommented ?? c.created_at ?? c.time ?? "",
+                    content: c.content ?? c.text ?? "",
+                }));
             } catch (e) {
-                console.error(e);
-                window.alert("Greška pri brisanju filma.");
-            } finally {
-                this.deleteLoading = false;
+                console.error("Greška pri učitavanju komentara za film:", e);
+                this.comments = [];
             }
-        }, async onDeleteMovie() {
+        },
+        async deleteMovie() {
             if (!this.movie?.title) return;
 
             this.deleteLoading = true;
             try {
-                // If your backend prefers DELETE with query param, you can use axios.delete
-                // Here is a POST example (common for PHP endpoints)
                 const { data } = await axios.post(
                     "http://localhost/backend/delete_movie.php",
-                    { title: this.movie.title }, // deleting by movie title as you requested
+                    { title: this.movie.title },
                     { withCredentials: true }
                 );
-
                 if (data?.success) {
-                    // success -> pop-up/alert, then route home
                     window.alert(data?.message || "Film je uspešno obrisan.");
                     this.$router.push("/");
                 } else {
@@ -211,12 +178,9 @@ export default {
             this.submitLoading = true;
             this.submitError = "";
 
-            // pripremi payload
             const payload = {
                 content: this.newComment.trim(),
                 movieTitle: this.movie?.title || this.titleFromSlug,
-                // author i vreme neka server postavi iz sesije,
-                // ali ubacićemo optimistički na klijentu:
             };
 
             try {
@@ -226,14 +190,18 @@ export default {
                     { withCredentials: true }
                 );
 
-                const saved = res.data && res.data.comment
-                    ? res.data.comment
-                    : {
-                        author: this.auth.user?.name || this.auth.user?.username || "Korisnik",
-                        movieName: payload.movieTitle,
-                        timeItwasCommented: "now",
-                        content: payload.content,
-                    };
+                const saved =
+                    res.data && res.data.comment
+                        ? res.data.comment
+                        : {
+                            author:
+                                this.auth.user?.name ||
+                                this.auth.user?.username ||
+                                "Korisnik",
+                            movieName: payload.movieTitle,
+                            timeItwasCommented: "now",
+                            content: payload.content,
+                        };
 
                 this.comments.unshift(saved);
                 this.newComment = "";
@@ -265,16 +233,21 @@ export default {
             }
         },
         onCommentDeleted(deletedId) {
-            this.comments = this.comments.filter(c => c.id !== deletedId);
-            console.log("KLIKNUTO DUGME");
-        }
-
+            this.comments = this.comments.filter((c) => c.id !== deletedId);
+        },
     },
-    // mounted() {
-    //   this.fetchMovie();
-    // },
+    async mounted() {
+        if (!this.movie || !this.movie.title) {
+            await this.fetchMovie();
+        }
+        const movieTitle = this.movie?.title || this.titleFromSlug;
+        if (movieTitle) {
+            await this.fetchCommentsForMovie(movieTitle);
+        }
+    },
 };
 </script>
+
 
 <style scoped>
 .movie-page {
