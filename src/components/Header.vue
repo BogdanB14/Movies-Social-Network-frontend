@@ -18,7 +18,7 @@
       <router-link class="pages" to="/sign-in">
         Registruj se
       </router-link>
-      <router-link class="pages" to="/add-movie" v-if="canAddMovie">
+      <router-link class="pages" to="/add-movie" v-if="true">
         Dodaj film
       </router-link>
 
@@ -42,7 +42,6 @@
 </template>
 
 <script>
-import router from '@/router';
 import { useAuthStore } from "@/stores/auth";
 import axios from "axios";
 import { computed } from "vue";

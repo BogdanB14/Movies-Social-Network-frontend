@@ -45,32 +45,30 @@ export default {
     },
     async loginUser() {
       this.loginError = "";
-
       if (!this.username || !this.password) {
         this.loginError = "Molimo unesite korisničko ime i šifru.";
         return;
       }
-
       try {
-        // Pozivanje PHP backend servisa
-        const response = await axios.post(
-          "http://localhost/myapp/login.php",
-          {
-            username: this.username,
-            password: this.password
-          },
-          { withCredentials: true }
-        );
+        // 1) Get CSRF cookie (required by Sanctum)
+        await axios.get("/sanctum/csrf-cookie");
 
-        if (response.data.success) {
-          this.auth.login(response.data.user);
+        // 2) Hit our Laravel API
+        const { data } = await axios.post("/api/login", {
+          username: this.username,
+          password: this.password,
+        });
+
+        if (data?.success) {
+          const auth = useAuthStore();
+          auth.login(data.user); 
           this.$router.push("/");
         } else {
-          this.loginError = response.data.message;
+          this.loginError = data?.message || "Neuspešna prijava.";
         }
-      } catch (error) {
-        console.error("Greška pri prijavi:", error);
-        this.loginError = "Došlo je do greške prilikom prijave. Pokušajte kasnije.";
+      } catch (err) {
+        console.error(err);
+        this.loginError = err?.response?.data?.message || "Došlo je do greške prilikom prijave.";
       }
     }
   },
@@ -83,7 +81,6 @@ export default {
 </script>
 
 <style scoped>
-
 .error {
   color: red;
   font-size: 0.9rem;

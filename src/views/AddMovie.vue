@@ -13,6 +13,11 @@
         </div>
 
         <div class="form-group">
+          <label for="director">Reditelj</label>
+          <input type="text" id="director" v-model.trim="movie.director" placeholder="Unesite reditelja" required />
+        </div>
+
+        <div class="form-group">
           <label for="year">Godina</label>
           <input type="number" id="year" v-model.number="movie.year" placeholder="Unesite godinu" required />
         </div>
@@ -29,6 +34,16 @@
             required></textarea>
         </div>
 
+        <!-- Glumci -->
+        <div class="form-group">
+          <label for="actors">Glumci (odvojeni zarezom ili novim redom)</label>
+          <textarea id="actors" v-model.trim="actorsText" placeholder="npr. Keanu Reeves, Carrie-Anne Moss"
+            rows="2"></textarea>
+          <small v-if="actorsArray.length">
+            Biće poslato: [{{ actorsArray.join(', ') }}]
+          </small>
+        </div>
+
         <div class="form-group">
           <label for="poster">Poster filma</label>
           <input type="file" id="poster" @change="handlePosterUpload" accept="image/*" />
@@ -36,7 +51,7 @@
         </div>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-          {{ loading ? 'Slanje…' : 'Dodaj film' }}
+          {{ loading ? "Slanje…" : "Dodaj film" }}
         </button>
 
         <p v-if="error" class="state error">{{ error }}</p>
@@ -63,14 +78,23 @@ export default {
         year: null,
         genre: "",
         description: "",
-        // poster is handled via file input change; we keep file separately:
+        director: ""
       },
-      posterFile: null, // File object from <input type="file">
-      posterName: "",   // UI display only
+      posterFile: null,
+      posterName: "",
+      actorsText: "",
       loading: false,
       error: "",
       success: "",
     };
+  },
+  computed: {
+    actorsArray() {
+      return (this.actorsText || "")
+        .split(/[\n,]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    },
   },
   methods: {
     handlePosterUpload(event) {
@@ -83,15 +107,23 @@ export default {
       this.error = "";
       this.success = "";
 
-      // Basic front-end validation
-      if (!this.movie.title || !this.movie.year || !this.movie.genre || !this.movie.description) {
+      if (
+        !this.movie.title ||
+        !this.movie.year ||
+        !this.movie.genre ||
+        !this.movie.director ||
+        !this.movie.description
+      ) {
         this.error = "Molimo popunite sva obavezna polja.";
         return;
       }
 
-      // (Optional) extra validation
       const year = Number(this.movie.year);
-      if (!Number.isInteger(year) || year < 1888 || year > new Date().getFullYear() + 1) {
+      if (
+        !Number.isInteger(year) ||
+        year < 1888 ||
+        year > new Date().getFullYear() + 1
+      ) {
         this.error = "Unesite validnu godinu.";
         return;
       }
@@ -101,40 +133,43 @@ export default {
         return;
       }
 
-      // Build multipart/form-data payload (needed for file uploads)
+      // Build multipart/form-data payload
       const formData = new FormData();
       formData.append("title", this.movie.title);
       formData.append("year", String(year));
       formData.append("genre", this.movie.genre);
       formData.append("description", this.movie.description);
+      formData.append("director", this.movie.director);
+      // dodaj glumce kao niz
+      this.actorsArray.forEach((actor) =>
+        formData.append("actors[]", actor)
+      );
+
       if (this.posterFile) {
-        // "poster" must match the PHP $_FILES['poster'] key you expect server-side
         formData.append("poster", this.posterFile);
       }
 
       this.loading = true;
       try {
-        // Replace with your real endpoint
-        // Example: /api/movies/create.php or /api/add_movie.php
         const { data } = await axios.post(
           "https://your-domain.tld/api/add_movie.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
-            // withCredentials: true, // if you need cookies/sessions
           }
         );
 
-        // Expecting your PHP to return JSON like: { success: true, id: 123, message: "OK" }
         if (data?.success) {
           this.success = data?.message || "Film je uspešno dodat.";
           this.resetForm();
         } else {
-          this.error = data?.message || "Došlo je do greške prilikom dodavanja filma.";
+          this.error =
+            data?.message ||
+            "Došlo je do greške prilikom dodavanja filma.";
         }
       } catch (e) {
-        // Network / server error
-        this.error = e?.response?.data?.message || "Greška na serveru ili mreži.";
+        this.error =
+          e?.response?.data?.message || "Greška na serveru ili mreži.";
       } finally {
         this.loading = false;
       }
@@ -144,7 +179,7 @@ export default {
       this.movie = { title: "", year: null, genre: "", description: "" };
       this.posterFile = null;
       this.posterName = "";
-      // Optionally clear the <input type="file">:
+      this.actorsText = "";
       const input = document.getElementById("poster");
       if (input) input.value = "";
     },
