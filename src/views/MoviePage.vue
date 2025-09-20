@@ -72,11 +72,10 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "@/axios";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import PersonsComment from "@/components/PersonsComment.vue";
-import inception from "../img/inception.jpg";
 import { useAuthStore } from "@/stores/auth";
 import { computed } from "vue";
 
@@ -96,24 +95,18 @@ export default {
             submitLoading: false,
             submitError: "",
             deleteLoading: false,
-            movie: {
-                title: "Inception",
-                genre: "Thriller",
-                year: "2015",
-                description:
-                    "Blasdiqewdkaoksdosmdnvowjfiqjdasd aKSDI WIQEJFIF0QKWD KQasdkoasd",
-                poster: inception,
-            },
+            movie: null,
             comments: [],
         };
     },
     computed: {
         slug() {
-            return this.$route.params.slug || "";
+            return this.$route.params.title || "";
         },
         titleFromSlug() {
             try {
                 const spaced = this.slug.replace(/-/g, " ");
+                console.log(spaced);
                 return decodeURIComponent(spaced);
             } catch {
                 return this.slug.replace(/-/g, " ");
@@ -129,45 +122,54 @@ export default {
     methods: {
         async fetchCommentsForMovie(movieTitle) {
             try {
-                const res = await axios.get(
-                    "http://localhost/backend/get_comments_by_movie.php",
-                    {
-                        params: { movieTitle },
-                        withCredentials: true,
-                    }
-                );
-                const rows = Array.isArray(res.data) ? res.data : [];
+                let resp;
+
+                if (this.movie?.id) {
+                    resp = await axios.get(`/api/movies/${this.movie.id}/comments`);
+                } else {
+                    const t = encodeURIComponent(movieTitle || this.titleFromSlug);
+                    resp = await axios.get(`/api/comments/by-movie-title/${t}`);
+                }
+                console.log("RESP:")
+                console.log(resp.data);
+                const rows = Array.isArray(resp?.data?.data) ? resp.data.data : [];
+
                 this.comments = rows.map((c) => ({
-                    id: c.id ?? c.comment_id ?? c.ID ?? undefined,
-                    author: c.author ?? c.username ?? c.user ?? "Nepoznato",
-                    movieName: c.movieName ?? c.movie_title ?? movieTitle,
-                    timeItwasCommented: c.timeItwasCommented ?? c.created_at ?? c.time ?? "",
-                    content: c.content ?? c.text ?? "",
+                    id: c.id,
+                    author:
+                        c.user?.username ||
+                        c.user?.name ||
+                        "Nepoznato",
+                    movieName: c.movie?.title || (this.movie?.title || this.titleFromSlug),
+                    timeItwasCommented: c.created_at || "",
+                    content: c.content || "",
                 }));
             } catch (e) {
                 console.error("Greška pri učitavanju komentara za film:", e);
                 this.comments = [];
             }
-        },
+        }
+        ,
         async deleteMovie() {
             if (!this.movie?.title) return;
 
             this.deleteLoading = true;
             try {
-                const { data } = await axios.post(
-                    "http://localhost/backend/delete_movie.php",
-                    { title: this.movie.title },
-                    { withCredentials: true }
-                );
-                if (data?.success) {
-                    window.alert(data?.message || "Film je uspešno obrisan.");
-                    this.$router.push("/");
+                await axios.get("/sanctum/csrf-cookie");
+
+                if (this.movie?.id) {
+                    await axios.delete(`/api/movies/${this.movie.id}`);
                 } else {
-                    window.alert(data?.message || "Brisanje nije uspelo.");
+                    const t = encodeURIComponent(this.movie.title);
+                    await axios.delete(`/api/movies/by-title/${t}`);
                 }
+
+                window.alert("Film je uspešno obrisan.");
+                this.$router.push("/");
             } catch (e) {
                 console.error(e);
-                window.alert("Greška pri brisanju filma.");
+                const msg = e?.response?.data?.message || "Greška pri brisanju filma.";
+                window.alert(msg);
             } finally {
                 this.deleteLoading = false;
             }
@@ -180,34 +182,42 @@ export default {
 
             const payload = {
                 content: this.newComment.trim(),
-                movieTitle: this.movie?.title || this.titleFromSlug,
             };
+            if (this.movie?.id) {
+                payload.for_movie = this.movie.id;
+            } else {
+                payload.movie_title = this.movie?.title || this.titleFromSlug;
+            }
 
             try {
-                const res = await axios.post(
-                    "http://localhost/backend/add_comment.php",
-                    payload,
-                    { withCredentials: true }
-                );
+                await axios.get("/sanctum/csrf-cookie");
 
-                const saved =
-                    res.data && res.data.comment
-                        ? res.data.comment
-                        : {
-                            author:
-                                this.auth.user?.name ||
-                                this.auth.user?.username ||
-                                "Korisnik",
-                            movieName: payload.movieTitle,
-                            timeItwasCommented: "now",
-                            content: payload.content,
-                        };
+                const { data } = await axios.post("/api/comments", payload);
 
-                this.comments.unshift(saved);
-                this.newComment = "";
+                if (data?.success && data?.data) {
+                    const c = data.data; // backend DTO (see below)
+
+                    const saved = {
+                        id: c.id,
+                        author:
+                            c.user?.username ||
+                            c.user?.name ||
+                            this.auth.user?.username ||
+                            this.auth.user?.name ||
+                            "Korisnik",
+                        movieName: c.movie?.title || (this.movie?.title || this.titleFromSlug),
+                        timeItwasCommented: c.created_at || "now",
+                        content: c.content,
+                    };
+
+                    this.comments.unshift(saved);
+                    this.newComment = "";
+                } else {
+                    this.submitError = data?.message || "Greška pri slanju komentara.";
+                }
             } catch (e) {
                 console.error(e);
-                this.submitError = "Greška pri slanju komentara.";
+                this.submitError = e?.response?.data?.message || "Greška pri slanju komentara.";
             } finally {
                 this.submitLoading = false;
             }
@@ -217,10 +227,10 @@ export default {
             this.error = "";
             this.movie = null;
             try {
-                const res = await axios.get("http://localhost/backend/get_movie.php", {
-                    params: { title: this.titleFromSlug },
-                    withCredentials: true,
-                });
+                console.log("Title from slug:")
+                console.log(this.titleFromSlug)
+                const res = await axios.get('/api/movies/search', { params: { title: this.titleFromSlug }, withCredentials: true })
+
                 this.movie = res.data || null;
                 if (!this.movie || !this.movie.title) {
                     this.error = "Film nije pronađen.";
@@ -232,8 +242,19 @@ export default {
                 this.loading = false;
             }
         },
-        onCommentDeleted(deletedId) {
-            this.comments = this.comments.filter((c) => c.id !== deletedId);
+        async onCommentDeleted(deletedId) {
+            // Only moderator/admin should be able to delete; backend enforces this as well.
+            if (!deletedId) return;
+
+            try {
+                await axios.get("/sanctum/csrf-cookie");
+                await axios.delete(`/api/comments/${deletedId}`);
+                this.comments = this.comments.filter((c) => c.id !== deletedId);
+            } catch (e) {
+                console.error(e);
+                const msg = e?.response?.data?.message || "Greška pri brisanju komentara.";
+                alert(msg);
+            }
         },
     },
     async mounted() {

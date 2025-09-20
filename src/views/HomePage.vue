@@ -21,9 +21,15 @@
                     <input type="text" placeholder="Pretraži film..." v-model="searchQuery" />
                 </div>
             </div>
-            <div class="movies-grid">
+
+            <!-- ADDED: loading / error states -->
+            <p v-if="loading" class="state">Učitavanje…</p>
+            <p v-else-if="error" class="state error">{{ error }}</p>
+
+            <div v-else class="movies-grid">
                 <OneMovieInList v-for="movie in sortedMovies" :key="movie.id" :title="movie.title" :year="movie.year"
-                    :poster="movie.poster" class="movie-card" @click="goToMovie(movie.title)" />
+                    :poster="movie.poster || defaultPoster"
+                    class="movie-card" @click="goToMovie(movie.title)" />
             </div>
         </div>
 
@@ -35,27 +41,61 @@
 import Footer from "@/components/Footer.vue";
 import Header from "@/components/Header.vue";
 import OneMovieInList from "@/components/OneMovieInList.vue";
+import axios from "@/axios"; // CHANGED: uses your CSRF-aware instance (baseURL http://localhost:8000)
 
 export default {
     name: "MovieList",
     components: { Header, Footer, OneMovieInList },
     data() {
         return {
+            // CHANGED: remove hard-coded movies; fetch from API
+            movies: [],                 // [{ id, title, director, genre, year, description, actors, poster }]
+            loading: false,             // ADDED
+            error: "",                  // ADDED
+
             sortOption: "",
             titleSort: "placeholder",
             yearSort: "placeholder",
             searchQuery: "",
-            movies: [
-                { id: 1, title: "The Shawshank Redemption", year: 1994, poster: "../src/img/shawshank.jpg" },
-                { id: 2, title: "The Godfather", year: 1972, poster: "../src/img/kum.jpg" },
-                { id: 3, title: "Inception", year: 2010, poster: "../src/img/inception.jpg" },
-                { id: 4, title: "Fight Club", year: 1999, poster: "../src/img/fight.jpg" },
-                { id: 5, title: "Interstellar", year: 2014, poster: "../src/img/inter.jpg" },
-                { id: 6, title: "The Dark Knight", year: 2008, poster: "https://via.placeholder.com/200x300?text=Dark+Knight" },
-            ],
+            defaultPoster: "https://via.placeholder.com/210x300?text=No+Poster", // ADDED
+            page: 1,                    // ADDED (if you later want pagination controls)
         };
     },
     methods: {
+        // ADDED: fetch movies from backend and normalize shape
+        async fetchMovies(page = 1) {
+            this.loading = true;
+            this.error = "";
+            try {
+                // Public endpoint; no CSRF needed for GET
+                const { data } = await axios.get("/api/movies", { params: { page } });
+
+                // We support both of these shapes:
+                //  A) { success: true, data: { data: [...] } }  (Laravel paginate)
+                //  B) { success: true, data: [...] }            (plain array)
+                const payload = Array.isArray(data?.data) ? data.data
+                    : Array.isArray(data?.data?.data) ? data.data.data
+                        : [];
+
+                this.movies = payload.map((m) => ({
+                    id: m.id,
+                    title: m.title ?? "",
+                    director: m.director ?? "",
+                    genre: m.genre ?? "",
+                    year: typeof m.year === "number" ? m.year : Number(m.year) || null,
+                    description: m.description ?? "",
+                    actors: Array.isArray(m.actors) ? m.actors : [],   // ensure string[]
+                    poster: m.poster || null,                           // string URL or null
+                }));
+            } catch (e) {
+                console.error(e);
+                this.error = e?.response?.data?.message || "Greška pri učitavanju filmova.";
+                this.movies = [];
+            } finally {
+                this.loading = false;
+            }
+        },
+
         onTitleSortChange() {
             this.sortOption = this.titleSort;
             this.yearSort = "placeholder";
@@ -77,20 +117,19 @@ export default {
             const realTitleValue = title;
             const slug = this.slugify(title);
             this.$router.push({
-                name: 'Movie',
+                name: "Movie",
                 params: {
                     title: slug,
-                    realTitle: realTitleValue
-                }
+                    realTitle: realTitleValue,
+                },
             });
-        }
+        },
     },
     computed: {
         sortedMovies() {
             const q = this.searchQuery.trim().toLowerCase();
-            let arr = q
-                ? this.movies.filter(m => m.title.toLowerCase().includes(q)) // ✅ substring match
-                : [...this.movies];
+            // make a non-mutating copy for safe sort
+            let arr = q ? this.movies.filter((m) => (m.title || "").toLowerCase().includes(q)) : [...this.movies];
 
             switch (this.sortOption) {
                 case "title-asc":
@@ -98,18 +137,22 @@ export default {
                 case "title-desc":
                     return arr.sort((a, b) => b.title.localeCompare(a.title));
                 case "year-asc":
-                    return arr.sort((a, b) => a.year - b.year);
+                    return arr.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
                 case "year-desc":
-                    return arr.sort((a, b) => b.year - a.year);
+                    return arr.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
                 default:
                     return arr;
             }
-        }
+        },
+    },
+    async mounted() {
+        await this.fetchMovies(); // CHANGED: load from backend on mount
     },
 };
 </script>
 
 <style>
+/* your styles unchanged */
 .sort-bar {
     display: flex;
     align-items: center;
@@ -175,7 +218,6 @@ export default {
 
 .movie-card {
     width: 100%;
-    /* fill the 210px track */
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -184,13 +226,10 @@ export default {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
-
-
 .search-bar {
     display: flex;
     align-items: center;
     padding: 0.4rem 0.75rem;
-    /* same as .sort-select */
     font-size: 0.9rem;
     border: 1px solid #444;
     border-radius: 6px;
@@ -199,7 +238,6 @@ export default {
     transition: all 0.2s;
     width: 100%;
     max-width: 20vw;
-    /* adjust width */
 }
 
 .search-bar:hover {
@@ -229,5 +267,14 @@ export default {
     width: 16px;
     height: 16px;
     display: block;
+}
+
+.state {
+    padding: 0.5rem 0;
+    opacity: 0.95;
+}
+
+.state.error {
+    color: #ff6b6b;
 }
 </style>

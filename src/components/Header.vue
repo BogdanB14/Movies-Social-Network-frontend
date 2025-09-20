@@ -12,38 +12,29 @@
 
     <!-- Funkcionalnosti u headeru -->
     <div class="header-right">
-      <router-link class="pages" to="log-in">
+      <router-link class="pages" to="log-in" v-if="!auth.isLoggedIn">
         Prijavi se
       </router-link>
-      <router-link class="pages" to="/sign-in">
+      <router-link class="pages" to="/sign-in" v-if="!auth.isLoggedIn">
         Registruj se
       </router-link>
-      <router-link class="pages" to="/add-movie" v-if="true">
+      <router-link class="pages" to="/add-movie" v-if="canAddMovie">
         Dodaj film
       </router-link>
+      <button class="pages" @click="logout" v-if="auth.isLoggedIn">
+        Odjavi se
+      </button>
 
-      <!-- Profile Icon with dropdown -->
-      <div class="profile-menu-wrapper">
-        <!-- Ikonica vodi direktno na profil -->
         <router-link to="/profile">
           <img src="../img/profil.png" alt="Profil" class="profile-icon" />
         </router-link>
-
-        <!-- Strelica otvara dropdown -->
-        <div class="dropdown-toggle" @click.stop="toggleDropdown">▼</div>
-
-        <!-- Dropdown meni -->
-        <div v-if="showProfileMenu && auth.isLoggedIn" class="profile-dropdown">
-          <button class="dropdown-item" @click="logout">Odjavi se</button>
-        </div>
-      </div>
     </div>
   </header>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
-import axios from "axios";
+import axios from "@/axios";
 import { computed } from "vue";
 
 export default {
@@ -67,17 +58,21 @@ export default {
     toggleDropdown() {
       this.showProfileMenu = !this.showProfileMenu;
     },
-    logout() {
+    async logout() {
       const auth = useAuthStore();
-      axios.post("http://localhost/backend/logout.php", {}, { withCredentials: true })
-        .then(() => {
-          auth.logout();
-          this.$router.push("/log-in");
-        })
-        .catch((error) => {
-          console.error("Greška pri odjavi:", error);
-        });
+      try {
+        // CSRF cookie (safe to call even if already set)
+        await axios.get("/sanctum/csrf-cookie");
+        await axios.post("/api/logout"); // 👈 Laravel route, NOT the old PHP file
+
+        auth.logout();
+        this.$router.push("/log-in");
+      } catch (error) {
+        console.error("Greška pri odjavi:", error);
+        alert(error?.response?.data?.message || "Greška pri odjavi.");
+      }
     }
+
   },
 };
 </script>

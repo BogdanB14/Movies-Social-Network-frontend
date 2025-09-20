@@ -66,7 +66,7 @@
 <script>
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
-import axios from "axios";
+import axios from "@/axios";
 
 export default {
   name: "AddMovie",
@@ -152,7 +152,7 @@ export default {
       this.loading = true;
       try {
         const { data } = await axios.post(
-          "https://your-domain.tld/api/add_movie.php",
+          "/api/movies",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

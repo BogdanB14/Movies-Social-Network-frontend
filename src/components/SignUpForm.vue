@@ -11,6 +11,21 @@
           <p v-if="emailError" class="error">{{ emailError }}</p>
         </div>
 
+        <!-- Name (Ime) --> <!-- CHANGED -->
+        <div class="form-group"> <!-- CHANGED -->
+          <label for="name">Ime</label> <!-- CHANGED -->
+          <input type="text" id="name" v-model="name" placeholder="Unesite svoje ime..." /> <!-- CHANGED -->
+          <p v-if="nameError" class="error">{{ nameError }}</p> <!-- CHANGED -->
+        </div>
+
+        <!-- Last name (Prezime) --> <!-- CHANGED -->
+        <div class="form-group"> <!-- CHANGED -->
+          <label for="last_name">Prezime</label> <!-- CHANGED -->
+          <input type="text" id="last_name" v-model="last_name" placeholder="Unesite svoje prezime..." />
+          <!-- CHANGED -->
+          <p v-if="lastNameError" class="error">{{ lastNameError }}</p> <!-- CHANGED -->
+        </div>
+
         <!-- Username -->
         <div class="form-group">
           <label for="username">Korisničko ime</label>
@@ -41,50 +56,65 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "@/axios";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
+  name: "SignUpForm",
   data() {
     return {
       email: "",
+      name: "",          // CHANGED
+      last_name: "",     // CHANGED
       username: "",
       password: "",
       isAdult: false,
       emailError: "",
+      nameError: "",      // CHANGED
+      lastNameError: "",  // CHANGED
       passwordError: "",
       usernameError: ""
-    }
+    };
   },
-  name: "SignUpForm",
   methods: {
     handleOverlayClick() {
       this.$emit("close");
     },
     async registerUser() {
+      // reset errors
       this.emailError = "";
       this.passwordError = "";
       this.usernameError = "";
-      // Regex
+      this.nameError = "";      // CHANGED
+      this.lastNameError = "";  // CHANGED
+
+      // Regex (same as before)
       const emailRegex = /^[A-Za-z0-9._%+-]{2,}@(gmail|hotmail)\.com$/;
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
       const usernameRegex = /^(?=.*[a-z])(?=.*[A-Z])[A-Za-z\d]{6,}$/;
+
+      // Simple name checks (front-end only)  // CHANGED
+      if (!this.name || this.name.trim().length < 2) {
+        this.nameError = "Ime mora imati barem 2 karaktera.";
+        return;
+      }
+      if (!this.last_name || this.last_name.trim().length < 2) {
+        this.lastNameError = "Prezime mora imati barem 2 karaktera.";
+        return;
+      }
 
       if (!emailRegex.test(this.email)) {
         this.emailError = "Email mora biti u formatu: korisnik@gmail.com ili korisnik@hotmail.com";
         return;
       }
-
       if (!usernameRegex.test(this.username)) {
         this.usernameError = "Korisničko ime mora imati minimum 6 karaktera, jedno veliko i jedno malo slovo.";
         return;
       }
-
       if (!passwordRegex.test(this.password)) {
         this.passwordError = "Šifra mora imati bar 8 karaktera, jedno veliko slovo, jedno malo slovo, jedan broj i jedan specijalan znak.";
         return;
       }
-
       if (!this.isAdult) {
         alert("Morate potvrditi da imate više od 18 godina.");
         return;
@@ -93,21 +123,28 @@ export default {
       const auth = useAuthStore();
 
       try {
-        const response = await axios.post("http://localhost/myapp/signup.php", {
+        // Sanctum CSRF (required once per session)  // CHANGED
+        await axios.get("/sanctum/csrf-cookie");
+        const { data } = await axios.post("/api/register", {
           email: this.email,
           username: this.username,
-          password: this.password
-        }, { withCredentials: true });
+          password: this.password,
+          name: this.name,
+          last_name: this.last_name,
+        });
 
-        if (response.data.success) {
-          auth.login({ username: this.username, email: this.email });
+
+        if (data?.success && data?.user) {
+          // Backend returns { id, username, name, last_name, email, role } // CHANGED
+          auth.login(data.user);
           alert("Uspešno ste registrovani i ulogovani!");
+          this.$router.push("/");
         } else {
-          alert(response.data.message);
+          alert(data?.message || "Registracija neuspešna.");
         }
       } catch (error) {
         console.error(error);
-        alert("Došlo je do greške prilikom registracije.");
+        alert(error?.response?.data?.message || "Došlo je do greške prilikom registracije.");
       }
     }
   },

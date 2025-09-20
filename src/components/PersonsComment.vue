@@ -27,12 +27,11 @@
 <script>
 import { useAuthStore } from "@/stores/auth";
 import { computed, ref } from "vue";
-import axios from "axios";
 
 export default {
   name: "PersonsComment",
   props: {
-    id: { type: Number, required: true },        
+    id: { type: Number, required: true },
     author: { type: String, required: true },
     movie: { type: String, required: true },
     time: { type: String, required: true },
@@ -51,23 +50,12 @@ export default {
         window.alert("Nedostaje ID komentara."); // helpful in dev
         return;
       }
+
+      if (!window.confirm("Obrisati komentar?")) return;
+
       deleting.value = true;
       try {
-        const { data } = await axios.post(
-          "http://localhost/backend/delete_comment.php",
-          { id: props.id },
-          { withCredentials: true }
-        );
-
-        if (data?.success) {
-          window.alert(data.message || "Komentar je obrisan.");
-          emit("deleted", props.id);    // ✅ tell parent to remove it
-        } else {
-          window.alert(data?.message || "Brisanje nije uspelo.");
-        }
-      } catch (e) {
-        console.error(e);
-        window.alert("Greška pri brisanju komentara.");
+        emit("deleted", props.id);
       } finally {
         deleting.value = false;
       }

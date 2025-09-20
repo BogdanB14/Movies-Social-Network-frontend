@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "@/axios";
 import { useAuthStore } from "@/stores/auth";
 export default {
   name: "LoginForm",
@@ -63,6 +63,7 @@ export default {
           const auth = useAuthStore();
           auth.login(data.user); 
           this.$router.push("/");
+          console.log('MJAU AASDJ');
         } else {
           this.loginError = data?.message || "Neuspešna prijava.";
         }
