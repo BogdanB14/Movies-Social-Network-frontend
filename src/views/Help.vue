@@ -6,32 +6,32 @@
       <h1 class="help-title">Šta Vam sajt MovieManiacs pruža:</h1>
 
       <section class="help-grid">
-        
+
         <div class="help-box">
           <h2>Pretraži filmove koje si odgledao</h2>
           <p>
-            Koristi našu pretragu da brzo pronađeš filmove koje si već gledao. 
-            Na taj način možeš da vodiš evidenciju o onome što si pogledao i 
+            Koristi našu pretragu da brzo pronađeš filmove koje si već gledao.
+            Na taj način možeš da vodiš evidenciju o onome što si pogledao i
             da lakše otkriješ nove filmove slične tvojim omiljenima.
           </p>
         </div>
 
-        
+
         <div class="help-box placeholder">
           <img src="../img/goredesno.jpg" alt="">
         </div>
 
-        
+
         <div class="help-box placeholder">
           <img src="../img/dolelevo.png" alt="">
         </div>
 
-        
+
         <div class="help-box">
           <h2>Recite nam šta ste videli</h2>
           <p>
-            Napravite svoj nalog i podelite mišljenja o filmovima sa zajednicom. 
-            Vaše recenzije i komentari pomažu drugim korisnicima da otkriju 
+            Napravite svoj nalog i podelite mišljenja o filmovima sa zajednicom.
+            Vaše recenzije i komentari pomažu drugim korisnicima da otkriju
             šta vredi pogledati i otvore prostor za diskusiju.
           </p>
         </div>
@@ -53,7 +53,6 @@ export default {
 </script>
 
 <style scoped>
-
 .help-page {
   display: flex;
   flex-direction: column;
@@ -106,9 +105,8 @@ export default {
   font-style: italic;
 }
 
-img{
-    height: 300px;
-    width: 400px;
+img {
+  height: 300px;
+  width: 400px;
 }
-
 </style>

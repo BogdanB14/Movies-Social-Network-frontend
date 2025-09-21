@@ -7,19 +7,16 @@
             <div v-else-if="error" class="state error">{{ error }}</div>
 
             <div v-else-if="movie" class="movie-details">
-                <!-- Poster -->
                 <div class="poster-wrapper">
                     <img class="poster" :src="movie.poster" :alt="movie.title" />
                 </div>
 
-                <!-- Info -->
                 <div class="info">
                     <h1 class="title">{{ movie.title }}</h1>
                     <p class="year">{{ movie.year }}</p>
                     <p v-if="movie.genre" class="genre">{{ movie.genre }}</p>
                     <p v-if="movie.description" class="description">{{ movie.description }}</p>
 
-                    <!-- Admin-only Delete button -->
                     <button v-if="canDelete" class="btn-danger" :disabled="deleteLoading" @click="deleteMovie">
                         {{ deleteLoading ? 'Brisanje…' : 'Obriši film' }}
                     </button>
@@ -31,7 +28,6 @@
             <div v-else class="state">Film nije pronađen.</div>
         </div>
 
-        <!-- Comments (Letterboxd-like panel) -->
         <section v-if="movie" class="comments-section">
             <div class="comments-header">
                 <h2>Komentari</h2>
@@ -63,7 +59,6 @@
             </div>
         </div>
 
-        <!-- Ako nije ulogovan, možeš prikazati info -->
         <div v-else class="login-hint">
             Prijavi se da bi ostavio komentar.
         </div>
@@ -195,7 +190,7 @@ export default {
                 const { data } = await axios.post("/api/comments", payload);
 
                 if (data?.success && data?.data) {
-                    const c = data.data; // backend DTO (see below)
+                    const c = data.data;
 
                     const saved = {
                         id: c.id,
@@ -243,7 +238,6 @@ export default {
             }
         },
         async onCommentDeleted(deletedId) {
-            // Only moderator/admin should be able to delete; backend enforces this as well.
             if (!deletedId) return;
 
             try {

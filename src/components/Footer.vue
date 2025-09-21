@@ -1,18 +1,13 @@
 <template>
   <footer class="footer">
     <div class="footer-content">
-      
       <div class="footer-links">
         <a href="about-us">O nama</a>
         <router-link to="/help">Pomoć</router-link>
       </div>
-
-      
       <div class="footer-center">
         <p>© 2025 MovieManiacs. All rights reserved by Bogi and Ćofi.</p>
       </div>
-
-      
       <div class="footer-icons">
         <a href="https://www.instagram.com/movie_._maniacs/" target="_blank" aria-label="Instagram">
           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" 
@@ -27,7 +22,6 @@
             <path d="M22 5.8c-.8.4-1.7.6-2.6.8a4.5 4.5 0 0 0 2-2.5c-.9.6-1.9 1-3 1.2A4.5 4.5 0 0 0 12 9a12.7 12.7 0 0 1-9.3-4.7 4.5 4.5 0 0 0 1.4 6A4.4 4.4 0 0 1 2 9.6v.1a4.5 4.5 0 0 0 3.6 4.4 4.6 4.6 0 0 1-2 .1 4.5 4.5 0 0 0 4.2 3.1A9 9 0 0 1 2 19.5 12.7 12.7 0 0 0 8.9 21c7.5 0 11.6-6.3 11.6-11.8v-.5c.8-.6 1.6-1.4 2.5-2.3Z"/>
           </svg>
         </a>
-
         <a href="https://www.facebook.com/profile.php?id=61580938890582" target="_blank" aria-label="Facebook">
           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" 
                viewBox="0 0 24 24" class="icon">
@@ -38,15 +32,12 @@
     </div>
   </footer>
 </template>
-
 <script>
 export default {
   name: "Footer",
 };
 </script>
-
 <style scooped>
-
 .footer {
   background-color: #1c1c1c;
   color: #fff; 
@@ -56,7 +47,6 @@ export default {
   min-height: 20vh;
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.5);
 }
-
 .footer-content {
   display: flex;
   justify-content: space-between;
@@ -66,12 +56,10 @@ export default {
   width: 100%;
   flex-wrap: wrap;
 }
-
 .footer-links {
   display: flex;
   gap: 2rem;
 }
-
 .footer-links a {
   color: #fff;
   text-decoration: none;
@@ -80,22 +68,18 @@ export default {
   transition: color 0.3s;
   background: none;   
 }
-
 .footer-links a:hover {
   color: #1db954;     
 }
-
 .footer-center {
   font-size: 1rem;
   text-align: center;
   flex: 1;
 }
-
 .footer-icons {
   display: flex;
   gap: 2rem;
 }
-
 .footer-icons a {
   color: #fff;        
   transition: color 0.3s;
@@ -103,15 +87,13 @@ export default {
   display: flex;      
   align-items: center;
 }
-
 .footer-icons a:hover {
   color: #1db954; 
 }
-
 .icon {
   width: 3vw;
   height: 3vh;
-  display: block;     /* uklanja višak prostora oko SVG-a */
+  display: block;   
 }
 </style>
 

@@ -1,14 +1,12 @@
 <template>
   <div class="profile-page">
-    <Header />
+    <Header></Header>
 
     <main class="profile-container">
-      <!-- If not logged in -->
       <section v-if="!auth.isLoggedIn" class="loading">
         Morate biti prijavljeni da biste videli profil.
       </section>
 
-      <!-- Logged-in profile -->
       <section v-else>
         <section class="profile-top">
           <div class="profile-icon" aria-hidden="true">
@@ -53,7 +51,7 @@
       </section>
     </main>
 
-    <Footer />
+    <Footer></Footer>
   </div>
 </template>
 
@@ -71,7 +69,6 @@ export default {
   setup() {
     const auth = useAuthStore();
 
-    // Pull the real user from the session/local storage via Pinia
     const fullName = computed(() => {
       const n = auth.user?.name ?? "";
       const ln = auth.user?.last_name ?? "";
@@ -103,11 +100,9 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        // Public GET: /api/users/{user}/comments
         const res = await axios.get(`/api/users/${userId}/comments`);
         const rows = Array.isArray(res?.data?.data) ? res.data.data : [];
 
-        // PersonsComment expects: { id, author, movie, time, content }
         this.comments = rows.map((c) => ({
           id: c.id,
           author: c.user?.username || c.user?.name || "Nepoznato",

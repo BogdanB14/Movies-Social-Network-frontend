@@ -1,9 +1,7 @@
 import { defineStore } from "pinia";
 
-// CHANGED: choose storage per env
 const STORAGE = import.meta.env.DEV ? sessionStorage : localStorage;
 
-// CHANGED: read from chosen storage
 const saved = JSON.parse(STORAGE.getItem("auth") || "null");
 
 export const useAuthStore = defineStore("auth", {
@@ -22,7 +20,6 @@ export const useAuthStore = defineStore("auth", {
       this.user = userData || null;
       this.role = (userData?.role || "client").toLowerCase();
 
-      // CHANGED: write to chosen storage
       STORAGE.setItem(
         "auth",
         JSON.stringify({
@@ -36,7 +33,7 @@ export const useAuthStore = defineStore("auth", {
       this.isLoggedIn = false;
       this.user = null;
       this.role = "client";
-      STORAGE.removeItem("auth"); // CHANGED
+      STORAGE.removeItem("auth");
     },
   },
 });

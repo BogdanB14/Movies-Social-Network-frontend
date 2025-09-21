@@ -1,6 +1,5 @@
 <template>
   <header class="app-header">
-    <!-- Logo -->
     <div class="header-left">
       <h1 class="logo">
         <router-link to="/" class="movie-maniacs-logo-router"><span class="movie">Movie</span><span
@@ -8,9 +7,6 @@
       </h1>
     </div>
 
-    <!-- Search bar -->
-
-    <!-- Funkcionalnosti u headeru -->
     <div class="header-right">
       <router-link class="pages" to="log-in" v-if="!auth.isLoggedIn">
         Prijavi se
@@ -54,17 +50,14 @@ export default {
     onSearch() {
       console.log("Pretraga:", this.searchQuery);
     },
-
     toggleDropdown() {
       this.showProfileMenu = !this.showProfileMenu;
     },
     async logout() {
       const auth = useAuthStore();
       try {
-        // CSRF cookie (safe to call even if already set)
         await axios.get("/sanctum/csrf-cookie");
-        await axios.post("/api/logout"); // 👈 Laravel route, NOT the old PHP file
-
+        await axios.post("/api/logout"); 
         auth.logout();
         this.$router.push("/log-in");
       } catch (error) {
@@ -94,33 +87,25 @@ export default {
   flex-wrap: wrap;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
-
 .header-left {
   flex: 0 0 auto;
 }
-
 .logo {
   font-size: 2rem;
   font-weight: bold;
   margin: 0;
 }
-
 .logo .movie {
   color: #fff;
-  /* belo */
 }
-
 .logo .maniacs {
   color: #1db954;
-  /* zeleno kao dugmad */
 }
-
 .header-center {
   flex: 1;
   display: flex;
   justify-content: center;
 }
-
 .search-bar {
   display: flex;
   align-items: center;
@@ -130,7 +115,6 @@ export default {
   width: 100%;
   max-width: 20vw;
 }
-
 .search-bar input {
   background: transparent;
   border: none;
@@ -139,18 +123,15 @@ export default {
   margin-left: 0.5rem;
   flex: 1;
 }
-
 .search-bar input::placeholder {
   color: #aaa;
 }
-
 .header-right {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 5rem;
 }
-
 .pages {
   background: none;
   border: none;
@@ -159,7 +140,6 @@ export default {
   cursor: pointer;
   transition: color 0.2s;
 }
-
 .profile-menu-wrapper {
   position: relative;
   cursor: pointer;
@@ -167,11 +147,9 @@ export default {
   justify-content: center;
   align-items: center;
 }
-
 .profile-dropdown {
   position: absolute;
   top: 80px;
-  /* distance from icon */
   right: 0;
   background-color: #2b2b2b;
   border-radius: 8px;
@@ -181,7 +159,6 @@ export default {
   min-width: 6vw;
   z-index: 1001;
 }
-
 .dropdown-item {
   padding: 0.5rem 1rem;
   color: #fff;
@@ -192,34 +169,27 @@ export default {
   cursor: pointer;
   text-decoration: none;
   display: flex;
-
 }
-
 .dropdown-item:hover {
   background-color: #1db954;
   color: #fff;
 }
-
 .pages:hover {
   color: #1db954;
 }
-
 img {
   height: 14px;
   width: 14px;
 }
-
 .pages img {
   height: 35px;
   width: 35px;
 }
-
 .profile-menu-wrapper,
 .profile-icon {
   height: 3vh;
   width: 3vw;
 }
-
 .dropdown-toggle {
   margin-left: 0.4rem;
   font-size: 0.9rem;
@@ -227,7 +197,6 @@ img {
   cursor: pointer;
   user-select: none;
 }
-
 .dropdown-toggle:hover {
   color: #1db954;
 }

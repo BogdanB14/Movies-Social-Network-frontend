@@ -3,7 +3,6 @@
     <div class="avatar" :title="author">
       {{ initials }}
     </div>
-
     <div class="comment-body">
       <div class="comment-meta">
         <span class="author">@{{ author }}</span>
@@ -11,18 +10,14 @@
         <span class="movie">{{ movie }}</span>
         <span class="sep">•</span>
         <span class="time">{{ timeAgo }}</span>
-
-        <!-- X button (admin/moderator only) -->
         <button v-if="canDelete" class="delete-btn" :disabled="deleting" @click="deleteComment">
           ×
         </button>
       </div>
-
       <p class="comment-text">{{ content }}</p>
     </div>
   </article>
 </template>
-
 
 <script>
 import { useAuthStore } from "@/stores/auth";
@@ -40,14 +35,12 @@ export default {
   setup(props, { emit }) {
     const auth = useAuthStore();
     const deleting = ref(false);
-
     const canDelete = computed(
       () => auth.isLoggedIn && (auth.role === "admin" || auth.role === "moderator")
     );
-
     const deleteComment = async () => {
       if (!props.id) {
-        window.alert("Nedostaje ID komentara."); // helpful in dev
+        window.alert("Nedostaje ID komentara.");
         return;
       }
 
@@ -60,7 +53,6 @@ export default {
         deleting.value = false;
       }
     };
-
     return { canDelete, deleteComment, deleting };
   },
   computed: {
@@ -89,8 +81,6 @@ export default {
   },
 };
 </script>
-
-
 <style scoped>
 .comment {
   display: flex;
@@ -102,7 +92,6 @@ export default {
   margin-bottom: 0.75rem;
   align-items: flex-start;
 }
-
 .avatar {
   min-width: 44px;
   height: 44px;
@@ -116,11 +105,9 @@ export default {
   font-size: 0.95rem;
   border: 1px solid #333;
 }
-
 .comment-body {
   flex: 1;
 }
-
 .comment-meta {
   font-size: 0.85rem;
   color: #cfcfcf;
@@ -129,33 +116,26 @@ export default {
   gap: 0.5rem;
   align-items: center;
 }
-
 .author {
   font-weight: 600;
   color: #ffffff;
 }
-
 .movie {
   color: #a8d08a;
-  /* blagi zeleni akcenat */
   font-weight: 600;
 }
-
 .sep {
   color: #666;
 }
-
 .time {
   color: #8f8f8f;
   font-size: 0.8rem;
 }
-
 .comment-text {
   margin: 0;
   color: #ddd;
   line-height: 1.4;
 }
-
 .delete-btn {
   margin-left: auto;
   background: transparent;
@@ -166,12 +146,10 @@ export default {
   cursor: pointer;
   transition: color 0.2s, transform 0.1s;
 }
-
 .delete-btn:hover {
   color: #ff1f1f;
   transform: scale(1.15);
 }
-
 .delete-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;

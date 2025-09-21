@@ -22,7 +22,6 @@
                 </div>
             </div>
 
-            <!-- ADDED: loading / error states -->
             <p v-if="loading" class="state">Učitavanje…</p>
             <p v-else-if="error" class="state error">{{ error }}</p>
 
@@ -41,38 +40,31 @@
 import Footer from "@/components/Footer.vue";
 import Header from "@/components/Header.vue";
 import OneMovieInList from "@/components/OneMovieInList.vue";
-import axios from "@/axios"; // CHANGED: uses your CSRF-aware instance (baseURL http://localhost:8000)
+import axios from "@/axios"; 
 
 export default {
     name: "MovieList",
     components: { Header, Footer, OneMovieInList },
     data() {
         return {
-            // CHANGED: remove hard-coded movies; fetch from API
-            movies: [],                 // [{ id, title, director, genre, year, description, actors, poster }]
-            loading: false,             // ADDED
-            error: "",                  // ADDED
+            movies: [],                 
+            loading: false,             
+            error: "",                  
 
             sortOption: "",
             titleSort: "placeholder",
             yearSort: "placeholder",
             searchQuery: "",
-            defaultPoster: "https://via.placeholder.com/210x300?text=No+Poster", // ADDED
-            page: 1,                    // ADDED (if you later want pagination controls)
+            defaultPoster: "https://via.placeholder.com/210x300?text=No+Poster", 
+            page: 1,                    
         };
     },
     methods: {
-        // ADDED: fetch movies from backend and normalize shape
         async fetchMovies(page = 1) {
             this.loading = true;
             this.error = "";
             try {
-                // Public endpoint; no CSRF needed for GET
                 const { data } = await axios.get("/api/movies", { params: { page } });
-
-                // We support both of these shapes:
-                //  A) { success: true, data: { data: [...] } }  (Laravel paginate)
-                //  B) { success: true, data: [...] }            (plain array)
                 const payload = Array.isArray(data?.data) ? data.data
                     : Array.isArray(data?.data?.data) ? data.data.data
                         : [];
@@ -84,8 +76,8 @@ export default {
                     genre: m.genre ?? "",
                     year: typeof m.year === "number" ? m.year : Number(m.year) || null,
                     description: m.description ?? "",
-                    actors: Array.isArray(m.actors) ? m.actors : [],   // ensure string[]
-                    poster: m.poster || null,                           // string URL or null
+                    actors: Array.isArray(m.actors) ? m.actors : [],   
+                    poster: m.poster || null,                          
                 }));
             } catch (e) {
                 console.error(e);
@@ -128,7 +120,6 @@ export default {
     computed: {
         sortedMovies() {
             const q = this.searchQuery.trim().toLowerCase();
-            // make a non-mutating copy for safe sort
             let arr = q ? this.movies.filter((m) => (m.title || "").toLowerCase().includes(q)) : [...this.movies];
 
             switch (this.sortOption) {
@@ -146,13 +137,12 @@ export default {
         },
     },
     async mounted() {
-        await this.fetchMovies(); // CHANGED: load from backend on mount
+        await this.fetchMovies(); 
     },
 };
 </script>
 
 <style>
-/* your styles unchanged */
 .sort-bar {
     display: flex;
     align-items: center;

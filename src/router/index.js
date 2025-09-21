@@ -1,4 +1,3 @@
-// src/router/index.js
 
 import { createRouter, createWebHistory } from "vue-router";
 import AboutUs from "@/views/AboutUs.vue";
@@ -21,9 +20,7 @@ const routes = [
   { path: "/about-us", name: "AboutUs", component: AboutUs },
   { path: "/sign-in", name: "SignIn", component: SignInPage },
   { path: "/log-in", name: "LogIn", component: LogInPage },
-  // Ovde ce biti ruta /profile-naziv-profila kasnije kada budemo imali profile (npr samo tvoj i moj) (kada se prijavis i kada kliknes na tudji profil)
   { path: "/profile", name: "ProfilePage", component: ProfilePage },
-  // Ovde ce biti ruta /movie-naziv-filma kasnije akda budemo imali filmove (iz baze naravno)
   { path: "/sign-up-form", name: "SignUpForm", component: SignUpForm },
   { path: "/log-in-form", name: "LogInForm", component: LogInForm },
   { path: "/movie/:title", name: "Movie", component: MoviePage, props: true},

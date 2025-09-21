@@ -4,43 +4,36 @@
       <h2 class="signup-title">Registracija</h2>
 
       <form class="signup-form" @submit.prevent="registerUser">
-        <!-- Email -->
         <div class="form-group">
           <label for="email">Email</label>
           <input type="email" id="email" v-model="email" placeholder="Unesite svoju email adresu..." />
           <p v-if="emailError" class="error">{{ emailError }}</p>
         </div>
 
-        <!-- Name (Ime) --> <!-- CHANGED -->
-        <div class="form-group"> <!-- CHANGED -->
-          <label for="name">Ime</label> <!-- CHANGED -->
-          <input type="text" id="name" v-model="name" placeholder="Unesite svoje ime..." /> <!-- CHANGED -->
-          <p v-if="nameError" class="error">{{ nameError }}</p> <!-- CHANGED -->
+        <div class="form-group"> 
+          <label for="name">Ime</label> 
+          <input type="text" id="name" v-model="name" placeholder="Unesite svoje ime..." /> 
+          <p v-if="nameError" class="error">{{ nameError }}</p> 
         </div>
 
-        <!-- Last name (Prezime) --> <!-- CHANGED -->
-        <div class="form-group"> <!-- CHANGED -->
-          <label for="last_name">Prezime</label> <!-- CHANGED -->
+        <div class="form-group"> 
+          <label for="last_name">Prezime</label> 
           <input type="text" id="last_name" v-model="last_name" placeholder="Unesite svoje prezime..." />
-          <!-- CHANGED -->
-          <p v-if="lastNameError" class="error">{{ lastNameError }}</p> <!-- CHANGED -->
+          <p v-if="lastNameError" class="error">{{ lastNameError }}</p> 
         </div>
 
-        <!-- Username -->
         <div class="form-group">
           <label for="username">Korisničko ime</label>
           <input type="text" id="username" v-model="username" placeholder="Unesite svoje korisničko ime..." />
           <p v-if="usernameError" class="error">{{ usernameError }}</p>
         </div>
 
-        <!-- Password -->
         <div class="form-group">
           <label for="password">Šifra</label>
           <input type="password" id="password" v-model="password" placeholder="Unesite svoju šifru..." />
           <p v-if="passwordError" class="error">{{ passwordError }}</p>
         </div>
 
-        <!-- Checkboxes -->
         <div class="checkbox-group">
           <label>
             <input type="checkbox" class="custom-checkbox" v-model="isAdult" />
@@ -48,7 +41,6 @@
           </label>
         </div>
 
-        <!-- Button -->
         <button type="submit" class="signup-button">Registruj se</button>
       </form>
     </div>
@@ -64,14 +56,14 @@ export default {
   data() {
     return {
       email: "",
-      name: "",          // CHANGED
-      last_name: "",     // CHANGED
+      name: "",          
+      last_name: "",     
       username: "",
       password: "",
       isAdult: false,
       emailError: "",
-      nameError: "",      // CHANGED
-      lastNameError: "",  // CHANGED
+      nameError: "",      
+      lastNameError: "",  
       passwordError: "",
       usernameError: ""
     };
@@ -81,19 +73,15 @@ export default {
       this.$emit("close");
     },
     async registerUser() {
-      // reset errors
       this.emailError = "";
       this.passwordError = "";
       this.usernameError = "";
-      this.nameError = "";      // CHANGED
-      this.lastNameError = "";  // CHANGED
-
-      // Regex (same as before)
+      this.nameError = "";      
+      this.lastNameError = "";  
       const emailRegex = /^[A-Za-z0-9._%+-]{2,}@(gmail|hotmail)\.com$/;
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
       const usernameRegex = /^(?=.*[a-z])(?=.*[A-Z])[A-Za-z\d]{6,}$/;
 
-      // Simple name checks (front-end only)  // CHANGED
       if (!this.name || this.name.trim().length < 2) {
         this.nameError = "Ime mora imati barem 2 karaktera.";
         return;
@@ -119,11 +107,9 @@ export default {
         alert("Morate potvrditi da imate više od 18 godina.");
         return;
       }
-
       const auth = useAuthStore();
 
       try {
-        // Sanctum CSRF (required once per session)  // CHANGED
         await axios.get("/sanctum/csrf-cookie");
         const { data } = await axios.post("/api/register", {
           email: this.email,
@@ -133,9 +119,7 @@ export default {
           last_name: this.last_name,
         });
 
-
         if (data?.success && data?.user) {
-          // Backend returns { id, username, name, last_name, email, role } // CHANGED
           auth.login(data.user);
           alert("Uspešno ste registrovani i ulogovani!");
           this.$router.push("/");
@@ -150,13 +134,11 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .error {
   color: red;
   font-size: 0.8rem;
 }
-
 .signup-overlay {
   position: relative;
   width: 100vw;
@@ -166,10 +148,7 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  /*pointer-events: none;*/
 }
-
-/* glavni box */
 .signup-container {
   background: #1c1c1c;
   color: #fff;
@@ -178,26 +157,22 @@ export default {
   width: 350px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
-
 .signup-title {
   text-align: center;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
   color: #fff;
 }
-
 .signup-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .form-group label {
   display: block;
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
 }
-
 .form-group input {
   width: 100%;
   padding: 0.6rem;
@@ -206,14 +181,11 @@ export default {
   outline: none;
   font-size: 0.9rem;
 }
-
 .checkbox-group {
   font-size: 0.85rem;
   display: flex;
   align-items: center;
 }
-
-/* custom checkbox */
 .custom-checkbox {
   appearance: none;
   -webkit-appearance: none;
@@ -225,12 +197,10 @@ export default {
   position: relative;
   cursor: pointer;
 }
-
 .custom-checkbox:checked {
   background-color: #1db954;
   border-color: #1db954;
 }
-
 .custom-checkbox:checked::after {
   content: "✔";
   color: #fff;
@@ -239,8 +209,6 @@ export default {
   top: -2px;
   left: 2px;
 }
-
-/* dugme */
 .signup-button {
   background-color: #1db954;
   color: #fff;
@@ -251,7 +219,6 @@ export default {
   cursor: pointer;
   transition: background 0.3s;
 }
-
 .signup-button:hover {
   background-color: #17a94d;
 }

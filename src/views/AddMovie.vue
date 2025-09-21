@@ -5,7 +5,6 @@
     <main class="add-movie-content">
       <h1 class="page-title">Dodaj novi film</h1>
 
-      <!-- NOTE: .prevent stops default page reload and calls submitMovie -->
       <form class="add-movie-form" @submit.prevent="submitMovie">
         <div class="form-group">
           <label for="title">Ime filma</label>
@@ -34,7 +33,6 @@
             required></textarea>
         </div>
 
-        <!-- Glumci -->
         <div class="form-group">
           <label for="actors">Glumci (odvojeni zarezom ili novim redom)</label>
           <textarea id="actors" v-model.trim="actorsText" placeholder="npr. Keanu Reeves, Carrie-Anne Moss"
@@ -133,14 +131,12 @@ export default {
         return;
       }
 
-      // Build multipart/form-data payload
       const formData = new FormData();
       formData.append("title", this.movie.title);
       formData.append("year", String(year));
       formData.append("genre", this.movie.genre);
       formData.append("description", this.movie.description);
       formData.append("director", this.movie.director);
-      // dodaj glumce kao niz
       this.actorsArray.forEach((actor) =>
         formData.append("actors[]", actor)
       );
