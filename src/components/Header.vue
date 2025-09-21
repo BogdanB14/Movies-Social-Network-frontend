@@ -214,10 +214,10 @@ img {
   width: 35px;
 }
 
-.profile-menu-wrapper,
 .profile-icon {
-  height: 3vh;
-  width: 3vw;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
 }
 
 .dropdown-toggle {
