@@ -1,6 +1,6 @@
 <template>
-  <div class="signup-overlay" @click="handleOverlayClick">
-    <div class="signup-container" @click.stop>
+  <div class="signup-overlay" >
+    <div class="signup-container" >
       <h2 class="signup-title">Registracija</h2>
 
       <form class="signup-form" @submit.prevent="registerUser">
@@ -69,9 +69,6 @@ export default {
     };
   },
   methods: {
-    handleOverlayClick() {
-      this.$emit("close");
-    },
     async registerUser() {
       this.emailError = "";
       this.passwordError = "";

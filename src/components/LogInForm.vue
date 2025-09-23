@@ -1,6 +1,6 @@
 <template>
-  <div class="login-overlay" @click="handleOverlayClick">
-    <div class="login-container" @click.stop>
+  <div class="login-overlay">
+    <div class="login-container">
       <h2 class="login-title">Prijava</h2>
       <form class="login-form" @submit.prevent="loginUser">
         <div class="form-group">
@@ -31,9 +31,6 @@ export default {
     }
   },
   methods: {
-    handleOverlayClick() {
-      this.$emit("close");
-    },
     async loginUser() {
       this.loginError = "";
       if (!this.username || !this.password) {
@@ -47,12 +44,12 @@ export default {
           username: this.username,
           password: this.password,
         });
-
+        console.log("DATAA")
+        console.log(data);
         if (data?.success) {
           const auth = useAuthStore();
           auth.login(data.user); 
           this.$router.push("/");
-          console.log('MJAU AASDJ');
         } else {
           this.loginError = data?.message || "Neuspešna prijava.";
         }

@@ -154,6 +154,7 @@ export default {
 
                 if (this.movie?.id) {
                     await axios.delete(`/api/movies/${this.movie.id}`);
+                    console.log("POZVAO SE RESURS");
                 } else {
                     const t = encodeURIComponent(this.movie.title);
                     await axios.delete(`/api/movies/by-title/${t}`);
@@ -222,7 +223,6 @@ export default {
             this.error = "";
             this.movie = null;
             try {
-                console.log("Title from slug:")
                 console.log(this.titleFromSlug)
                 const res = await axios.get('/api/movies/search', { params: { title: this.titleFromSlug }, withCredentials: true })
 

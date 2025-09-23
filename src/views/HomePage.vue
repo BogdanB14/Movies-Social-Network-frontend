@@ -65,6 +65,8 @@ export default {
             this.error = "";
             try {
                 const { data } = await axios.get("/api/movies", { params: { page } });
+                console.log("PROMISE:");
+                console.log(data);
                 const payload = Array.isArray(data?.data) ? data.data
                     : Array.isArray(data?.data?.data) ? data.data.data
                         : [];
@@ -89,6 +91,7 @@ export default {
         },
 
         onTitleSortChange() {
+            console.log("AAAA");
             this.sortOption = this.titleSort;
             this.yearSort = "placeholder";
         },
